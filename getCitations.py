@@ -13,6 +13,7 @@ import apikeys
 import urllib.parse
 
 pathOutput = "data/output/"
+pathInput = "data/input/"
 inputTsv = pathOutput + '09.dois-candidati-2016-ordered.tsv'
 #sectors = ['13/D1', '13/D2', '13/D3', '01/B1', '09/H1']
 sectors = ['13/D3']
