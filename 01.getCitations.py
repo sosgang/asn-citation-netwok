@@ -16,7 +16,7 @@ pathOutput = "data/output/"
 pathInput = "data/input/"
 inputTsv = pathInput + '09.dois-candidati-2016-ordered.tsv'
 #sectors = ['13/D1', '13/D2', '13/D3', '01/B1', '09/H1']
-sectors = ['13/D3', '13/D2', '13/D1']
+sectors = ['01/B1']
 
 apiURL_AbstractDoi = 'https://api.elsevier.com/content/abstract/doi/'
 
@@ -76,6 +76,11 @@ def getAbstract(doi, max_retry=2, retry_delay=1):
 		#if self.raw_output:
 		#	self.save_raw_response(r.text)
 
+		# quota exceeded -> http 429 (see https://dev.elsevier.com/api_key_settings.html)
+		if r.status_code == 429:
+			print ("Quota exceeded for key " + apikeys.keys[0] + " - EXIT.")
+			sys.exit()
+		
 		if r.status_code > 200 and r.status_code < 500:
 			print(u"{}: errore nella richiesta: {}".format(r.status_code, r.url))
 			return None
