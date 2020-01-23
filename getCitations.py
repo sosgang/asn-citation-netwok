@@ -12,12 +12,13 @@ import apikeys
 
 import urllib.parse
 
-inputTsv = '09.dois-candidati-2016-ordered.tsv'
-#settori = ['13/D1', '13/D2', '13/D3', '01/B1', '09/H1']
-settori = ['01/B1']
+pathOutput = "data/output/"
+inputTsv = pathOutput + '09.dois-candidati-2016-ordered.tsv'
+#sectors = ['13/D1', '13/D2', '13/D3', '01/B1', '09/H1']
+sectors = ['13/D3']
 
 apiURL_AbstractDoi = 'https://api.elsevier.com/content/abstract/doi/'
-path = "data/output/"
+
 
 def getDoisSet(f):
 	doisList = list()
@@ -25,12 +26,13 @@ def getDoisSet(f):
 		spamreader = csv.DictReader(csvfile, delimiter='\t')
 		for row in spamreader:
 			#print (row['SETTORE'].replace('-','/'))
-			if row['SETTORE'].replace('-','/') in settori:
+			if row['SETTORE'].replace('-','/') in sectors:
 				doiTemp = ast.literal_eval(row['DOIS ESISTENTI'])
 				doisList.extend(doiTemp)
 
 	# prendo doi unici
 	return set(doisList)
+
 
 ##### TODO ##### TODO ##### TODO ##### TODO ##### TODO #####
 # controlla che json dell'abstract ritornato da api sia ok
@@ -44,11 +46,11 @@ def saveJsonAbstract(j):
 	if (checkAbsFormat(j)):
 		eid = j['abstracts-retrieval-response']['coredata']['eid']
 		
-		if not os.path.isdir(path):
-			os.mkdir(path)
+		if not os.path.isdir(pathOutput):
+			os.mkdir(pathOutput)
 			
 		counter = 1
-		completepath = os.path.join(path, eid + '.json')
+		completepath = os.path.join(pathOutput, eid + '.json')
 
 		with open(completepath, 'w') as outfile:
 			json.dump(j, outfile, indent=3)
@@ -100,7 +102,7 @@ def getAbstracts(dois):
 	
 	doisToSkip = list()
 	
-	contents = glob(path + '*.json')
+	contents = glob(pathOutput + '*.json')
 	contents.sort()
 	for filename_withPath in contents:
 		#print (filename_withPath)
@@ -119,6 +121,12 @@ def getAbstracts(dois):
 			print ('Skipping doi ' + doi + ': already downloaded')
 
 
+
+#getAbstracts(['10.1016/j.scico.2011.10.006', '10.1016/S0005-2736(99)00198-4', '10.1016/S0014-5793(01)03313-0'])
+dois = getDoisSet(inputTsv)
+getAbstracts(dois)
+
+# get delta time
 '''
 dt1 = datetime.datetime.now()
 #print(dt1.year)v
@@ -147,20 +155,6 @@ else:
 '''
 
 
-
-#doisSet = len(getDoisSet(inputTsv))
-#sys.exit()
-
-'''
-dois = getDoisSet(inputTsv)
-for doi in dois:
-	#doi = '10.1016/j.scico.2011.10.006'
-	jsonAbs = getAbstract(doi)
-	#print (jsonAbs)
-	saveJsonAbstract(jsonAbs)
-'''
-
-getAbstracts(['10.1016/j.scico.2011.10.006', '10.1016/S0005-2736(99)00198-4', '10.1016/S0014-5793(01)03313-0'])
 
 '''
 class ScopusDownloader(object): 
