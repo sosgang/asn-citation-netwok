@@ -4,6 +4,10 @@ import sys
 import ast
 import datetime
 import time
+import os 
+import json
+from glob import glob
+
 import apikeys
 
 import urllib.parse
@@ -13,6 +17,7 @@ inputTsv = '09.dois-candidati-2016-ordered.tsv'
 settori = ['01/B1']
 
 apiURL_AbstractDoi = 'https://api.elsevier.com/content/abstract/doi/'
+path = "data/output/"
 
 def getDoisSet(f):
 	doisList = list()
@@ -26,7 +31,32 @@ def getDoisSet(f):
 
 	# prendo doi unici
 	return set(doisList)
-	
+
+##### TODO ##### TODO ##### TODO ##### TODO ##### TODO #####
+# controlla che json dell'abstract ritornato da api sia ok
+##### TODO ##### TODO ##### TODO ##### TODO ##### TODO #####
+def checkAbsFormat(j):
+	return True
+
+# Salvo usando eid come nome
+def saveJsonAbstract(j):
+
+	if (checkAbsFormat(j)):
+		eid = j['abstracts-retrieval-response']['coredata']['eid']
+		
+		if not os.path.isdir(path):
+			os.mkdir(path)
+			
+		counter = 1
+		completepath = os.path.join(path, eid + '.json')
+
+		with open(completepath, 'w') as outfile:
+			json.dump(j, outfile, indent=3)
+		
+		return True
+
+	else:
+		return False
 
 #'https://api.elsevier.com/content/abstract/scopus_id/0032717048?apikey=5953888c807d52ee017df48501d3e598&httpAccept=application/json&view=FULL'
 def getAbstract(doi, max_retry=2, retry_delay=1):
@@ -59,9 +89,34 @@ def getAbstract(doi, max_retry=2, retry_delay=1):
 		return None 
  
 	json = r.json() 
-	json['request-time'] = datetime.datetime.now()
+	json['request-time'] = str(datetime.datetime.now().utcnow())
+	# TO DECODE:
+	#oDate = datetime.datetime.strptime(json['request-time'], '%Y-%m-%d %H:%M:%S.%f')
 	return json
 
+# scarica e salva su file (nome=eid.json) json abstract (via scopus API)
+# NB: effettua controllo doi con già abstract scaricato, per non ripetere l'operazione
+def getAbstracts(dois):
+	
+	doisToSkip = list()
+	
+	contents = glob(path + '*.json')
+	contents.sort()
+	for filename_withPath in contents:
+		#print (filename_withPath)
+		with open(filename_withPath) as json_file:
+			data = json.load(json_file)
+			doi = data['abstracts-retrieval-response']['coredata']['prism:doi']
+			eid = data['abstracts-retrieval-response']['coredata']['eid']
+			doisToSkip.append(doi)
+	
+	for doi in dois:
+		if doi not in doisToSkip:
+			print ('Processing ' + doi)
+			jsonAbs = getAbstract(doi)
+			saveJsonAbstract(jsonAbs)
+		else:
+			print ('Skipping doi ' + doi + ': already downloaded')
 
 
 '''
@@ -96,9 +151,16 @@ else:
 #doisSet = len(getDoisSet(inputTsv))
 #sys.exit()
 
-doi = '10.1016/j.scico.2011.10.006'
-jsonAbs = getAbstract(doi)
-print (jsonAbs)
+'''
+dois = getDoisSet(inputTsv)
+for doi in dois:
+	#doi = '10.1016/j.scico.2011.10.006'
+	jsonAbs = getAbstract(doi)
+	#print (jsonAbs)
+	saveJsonAbstract(jsonAbs)
+'''
+
+getAbstracts(['10.1016/j.scico.2011.10.006', '10.1016/S0005-2736(99)00198-4', '10.1016/S0014-5793(01)03313-0'])
 
 '''
 class ScopusDownloader(object): 
