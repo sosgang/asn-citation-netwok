@@ -1,39 +1,23 @@
+# -*- coding: UTF-8 -*-
 import requests
 import csv
 import sys
-import ast
 import datetime
 import time
 import os 
 import json
 from glob import glob
 
-import apikeys
-
 import urllib.parse
 
-pathOutput = "data/output/"
+import apikeys
+import mylib
+
 pathInput = "data/input/"
+pathOutput = "data/output/abstracts/"
 inputTsv = pathInput + '09.dois-candidati-2016-ordered.tsv'
-#sectors = ['13/D1', '13/D2', '13/D3', '01/B1', '09/H1']
-sectors = ['01/B1']
 
 apiURL_AbstractDoi = 'https://api.elsevier.com/content/abstract/doi/'
-
-
-def getDoisSet(f):
-	doisList = list()
-	with open(f, newline='') as csvfile:
-		spamreader = csv.DictReader(csvfile, delimiter='\t')
-		for row in spamreader:
-			#print (row['SETTORE'].replace('-','/'))
-			if row['SETTORE'].replace('-','/') in sectors:
-				doiTemp = ast.literal_eval(row['DOIS ESISTENTI'])
-				doisList.extend(doiTemp)
-
-	# prendo doi unici
-	return set(doisList)
-
 
 ##### TODO ##### TODO ##### TODO ##### TODO ##### TODO #####
 # controlla che json dell'abstract ritornato da api sia ok
@@ -48,7 +32,7 @@ def saveJsonAbstract(j):
 		eid = j['abstracts-retrieval-response']['coredata']['eid']
 		
 		if not os.path.isdir(pathOutput):
-			os.mkdir(pathOutput)
+			os.makedirs(pathOutput)
 			
 		counter = 1
 		completepath = os.path.join(pathOutput, eid + '.json')
@@ -133,7 +117,9 @@ def getAbstracts(dois):
 
 
 #getAbstracts(['10.1016/j.scico.2011.10.006', '10.1016/S0005-2736(99)00198-4', '10.1016/S0014-5793(01)03313-0'])
-dois = getDoisSet(inputTsv)
+dois = mylib.getDoisSet(inputTsv)
+print (len(dois))
+sys.exit()
 getAbstracts(dois)
 
 # get delta time
