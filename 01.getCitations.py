@@ -14,9 +14,9 @@ import urllib.parse
 
 pathOutput = "data/output/"
 pathInput = "data/input/"
-inputTsv = pathOutput + '09.dois-candidati-2016-ordered.tsv'
+inputTsv = pathInput + '09.dois-candidati-2016-ordered.tsv'
 #sectors = ['13/D1', '13/D2', '13/D3', '01/B1', '09/H1']
-sectors = ['13/D3']
+sectors = ['13/D3', '13/D2', '13/D1']
 
 apiURL_AbstractDoi = 'https://api.elsevier.com/content/abstract/doi/'
 
@@ -70,7 +70,7 @@ def getAbstract(doi, max_retry=2, retry_delay=1):
 
 		params = {'apikey':apikeys.keys[0], 'httpAccept':'application/json'} #, 'view':'FULL'}
 		doiEncoded = urllib.parse.quote(doi)
-		print(apiURL_AbstractDoi + urllib.parse.quote(doi))
+		#print(apiURL_AbstractDoi + urllib.parse.quote(doi))
 		r = requests.get(apiURL_AbstractDoi + doiEncoded, params=params)
 				
 		#if self.raw_output:
@@ -117,7 +117,11 @@ def getAbstracts(dois):
 		if doi not in doisToSkip:
 			print ('Processing ' + doi)
 			jsonAbs = getAbstract(doi)
-			saveJsonAbstract(jsonAbs)
+			if jsonAbs is not None:
+				saveJsonAbstract(jsonAbs)
+				print ('\tSaved to file.')
+			else:
+				print ('\tNone -> not saved.')
 		else:
 			print ('Skipping doi ' + doi + ': already downloaded')
 
