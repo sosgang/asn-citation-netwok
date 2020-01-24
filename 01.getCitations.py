@@ -63,9 +63,10 @@ def getAbstract(doi, max_retry=2, retry_delay=1):
 		# quota exceeded -> http 429 (see https://dev.elsevier.com/api_key_settings.html)
 		if r.status_code == 429:
 			print ("Quota exceeded for key " + apikeys.keys[0] + " - EXIT.")
-			sys.exit()
+			apikeys.keys.pop(0)
+			#sys.exit()
 		
-		if r.status_code > 200 and r.status_code < 500:
+		elif r.status_code > 200 and r.status_code < 500:
 			print(u"{}: errore nella richiesta: {}".format(r.status_code, r.url))
 			return None
 
@@ -119,7 +120,7 @@ def getAbstracts(dois):
 #getAbstracts(['10.1016/j.scico.2011.10.006', '10.1016/S0005-2736(99)00198-4', '10.1016/S0014-5793(01)03313-0'])
 dois = mylib.getDoisSet(inputTsv)
 print (len(dois))
-sys.exit()
+#sys.exit()
 getAbstracts(dois)
 
 # get delta time

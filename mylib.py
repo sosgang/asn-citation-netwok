@@ -3,7 +3,7 @@ import ast
 
 
 #sectors = ['13/D1', '13/D2', '13/D3', '01/B1', '09/H1']
-sectors = ['01/B1']
+sectors = ['01/B1','09/H1']
 
 def getDoisSet(f):
 	doisList = list()

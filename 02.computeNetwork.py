@@ -58,15 +58,15 @@ def computeCitedNetwork(path):
 	return citedDict
 
 # compute citation network using abstracts (i.e. json files)
-#citedNet = computeCitedNetwork(pathAbstracts)
+citedNet = computeCitedNetwork(pathAbstracts)
 
 # save the citation network to file
-#with open(pathOutput + fileCitationNet, 'w') as fp:
-#	json.dump(citedNet, fp, indent=4)
+with open(pathOutput + fileCitationNet, 'w') as fp:
+	json.dump(citedNet, fp, indent=4)
 
 # load the citation network from file
-with open(pathOutput + fileCitationNet) as json_file:
-	citedNet = json.load(json_file)
+#with open(pathOutput + fileCitationNet) as json_file:
+#	citedNet = json.load(json_file)
 
 
 i=0
