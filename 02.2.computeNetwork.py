@@ -1,6 +1,6 @@
 import os 
 import json
-#from glob import glob
+from glob import glob
 import sys
 import csv
 import ast
@@ -10,7 +10,7 @@ import mylib
 pathInput = "data/input/"
 inputTsv = pathInput + '09.dois-candidati-2016-ordered.tsv'
 
-pathAbstracts = "data/output/abstracts/"
+pathAbstracts = "data/output/abstracts/"+ ("_".join(mylib.sectors)).replace("/", "") + "/"
 pathOutput = "data/output/"
 fileCitationNetV1 = "citationNet_v1_" + ("_".join(mylib.sectors)).replace("/", "") + ".json"
 fileCitationNetV2 = "citationNet_v2_" + ("_".join(mylib.sectors)).replace("/", "") + ".json"
@@ -165,8 +165,8 @@ def computeCitedNetwork_v2(tsv, citedNet, doiEidMap, doiAuthorsMap):
 					"sessione": sessione,
 					"fascia": fascia,
 					"settore": settore,
-					"pubsEid": pubsEid,
-					"pubsDoi": pubsDoi,
+					#"pubsEid": pubsEid,
+					#"pubsDoi": pubsDoi,
 					"pubs": pubs
 				}
 	# prendo doi unici
@@ -192,17 +192,15 @@ def computeCitedNetwork_v2(tsv, citedNet, doiEidMap, doiAuthorsMap):
 
 # V1 *** V1 *** V1 *** V1 *** V1 *** V1 *** V1 *** V1 *** V1 *** 
 # compute citation network v1 (eid-cited -> list-eids-citing) using abstracts (i.e. json files)
-#citedNet = computeCitedNetwork(pathAbstracts)
+citedNetV1 = computeCitedNetwork(pathAbstracts)
 
 # save the citation network v1 (eid-cited -> list-eids-citing) to file
-#with open(pathOutput + fileCitationNetV1, 'w') as fp:
-#	json.dump(citedNet, fp, indent=4)
-
-
+with open(pathOutput + fileCitationNetV1, 'w') as fp:
+	json.dump(citedNetV1, fp, indent=4)
 
 # load the citation network v1 (eid-cited -> list-eids-citing) from file
-with open(pathOutput + fileCitationNetV1) as json_file:
-	citedNetV1 = json.load(json_file)
+#with open(pathOutput + fileCitationNetV1) as json_file:
+#	citedNetV1 = json.load(json_file)
 
 '''
 i=0
@@ -215,30 +213,32 @@ print (i)
 
 # V2 *** V2 *** V2 *** V2 *** V2 *** V2 *** V2 *** V2 *** V2 ***
 # compute doiAuthors map (in a dictionary)
-#doiAuthors = doiAuthorsMap(inputTsv)
+doiAuthors = doiAuthorsMap(inputTsv)
 
 # save doiAuthors map to file
-#with open(pathOutput + fileDoiAuthorsMap, 'w') as fp:
-#	json.dump(doiAuthors, fp, indent=4)
+with open(pathOutput + fileDoiAuthorsMap, 'w') as fp:
+	json.dump(doiAuthors, fp, indent=4)
 
 # load doiAuthors map from file
-with open(pathOutput + fileDoiAuthorsMap) as json_file:
-	doiAuthors = json.load(json_file)
+#with open(pathOutput + fileDoiAuthorsMap) as json_file:
+#	doiAuthors = json.load(json_file)
+
+
+
 
 # compute doiEid map (in a dictionary)
-#doiEidMap = mylib.doiEidMap(pathAbstracts)
+doiEidMap = mylib.doiEidMap(pathAbstracts)
 
 # save doiEid map to file
-#with open(pathOutput + fileDoiEidMap, 'w') as fp:
-#	json.dump(doiEidMap, fp, indent=4)
+with open(pathOutput + fileDoiEidMap, 'w') as fp:
+	json.dump(doiEidMap, fp, indent=4)
 
 # load doiEid map from file
-with open(pathOutput + fileDoiEidMap) as json_file:
-	doiEidMap = json.load(json_file)
+#with open(pathOutput + fileDoiEidMap) as json_file:
+#	doiEidMap = json.load(json_file)
 
-'''
 citNetV2 = computeCitedNetwork_v2(inputTsv, citedNetV1, doiEidMap, doiAuthors)
 with open(pathOutput + fileCitationNetV2, 'w') as fp:
 	json.dump(citNetV2, fp, indent=4)
-'''
+
 mylib.getAuthorsId(inputTsv, pathAbstracts, doiEidMap)
