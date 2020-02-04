@@ -2,71 +2,122 @@ import csv
 import ast
 from glob import glob
 import json
+import sys
+import re
 
 #sectors = ['13/D1', '13/D2', '13/D3', '01/B1', '09/H1']
 sectors = ['01/B1','09/H1']
 #sectors = ['13/D1', '13/D2', '13/D3']
 
-def getAuthorsId(tsv, folderAbstracts, doiEidMap):
-	counterAll = 0
-	counterGreaterOne = 0
-	counterZero = 0
-	authorsAll = dict()
-	with open(tsv, newline='') as csvfile:
+# Get authors' names and surnames from the cv PDFs
+def addAuthorsNamesToTsv(tsvIn, tsvOut, pathPdf):
+	res = "SESSIONE	FASCIA	SETTORE	BIBL?	ID CV	COGNOME	NOME	NUMERO DOI ESISTENTI	DOIS ESISTENTI	DOIS NON ESISTENTI	I1	I2	I3	SETTORE CONCORSUALE	SSD	S1	S2	S3\n"
+	# Load TSV
+	with open(tsvIn, newline='') as csvfile:
 		spamreader = csv.DictReader(csvfile, delimiter='\t')
 		for row in spamreader:
-			#print (row['SETTORE'].replace('-','/'))
 			if row['SETTORE'].replace('-','/') in sectors:
-				counterAll += 1
-				authorsIntersection = set()
+				idCv = row['ID CV']
+				sessione = row['SESSIONE']
+				fascia = row['FASCIA']
+				settore = row['SETTORE']
+				pdfBasePath = pathPdf + "quadrimestre-" + sessione + "/fascia-" + fascia + "/" + settore + "/CV/"
+				pdfFullPath = pdfBasePath + idCv + "_*.pdf"
+				contents = glob(pdfFullPath)
+				contents.sort()
+				if len(contents) != 1:
+					print ("ERROR - NOT FOUND - sessione: %s, fascia: %s, settore: %s, idCv: %s" % (sessione, fascia, settore, idCv))
+					sys.exit()
+				filename = (contents[0].replace(pdfBasePath, ""))
+				filenameSPlit = filename.split("_")
+				idPdf = filenameSPlit[0]
+				surnameList = list()
+				nameList = list()
+				for i in range(1,len(filenameSPlit)):
+					if filenameSPlit[i].isupper():
+						surnameList.append(filenameSPlit[i])
+					else:
+						nameList.append(filenameSPlit[i].replace(".pdf", ""))
+				name = " ".join(nameList)
+				surname = " ".join(surnameList)
+				#print("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s" % (row["SESSIONE"], row["FASCIA"], row["SETTORE"], row["BIBL?"], row["ID CV"], surname, name, row["NUMERO DOI ESISTENTI"], row["DOIS ESISTENTI"], row["DOIS NON ESISTENTI"], row["I1"], row["I2"], row["I3"], row["SETTORE CONCORSUALE"], row["SSD"], row["S1"], row["S2"], row["S3"]))
+				res += "\t".join([row["SESSIONE"], row["FASCIA"], row["SETTORE"], row["BIBL?"], row["ID CV"], surname, name, row["NUMERO DOI ESISTENTI"], row["DOIS ESISTENTI"], row["DOIS NON ESISTENTI"], row["I1"], row["I2"], row["I3"], row["SETTORE CONCORSUALE"], row["SSD"], row["S1"], row["S2"], row["S3"]]) + "\n"
+			
+	text_file = open(tsvOut, "w")
+	text_file.write(res)
+	text_file.close()
+	
+# Get Scopus authors' ids (using names in the TSV and JSON abstracts)
+def addAuthorsIdScopusToTsv(tsvIn, folderAbstracts, doiEidMap, tsvOut):
+	res = dict()
+	with open(tsvIn, newline='') as csvfile:
+		numFound = 0
+		numNotFound = 0
+		spamreader = csv.DictReader(csvfile, delimiter='\t')
+		for row in spamreader:
+			if row['SETTORE'].replace('-','/') in sectors:
 				dois = ast.literal_eval(row['DOIS ESISTENTI'])
 				idCv = row['ID CV']
+				surnameCv = row["COGNOME"]
+				nameCv = row["NOME"]
+				
+				res[idCv] = ''
 				print ("############################################################")
 				print (idCv + " - " + str(len(dois)))
 				for doi in dois:
 					try:
 						eid = doiEidMap["doi-to-eid"][doi]
-						#print (eid)
-						authorsPublication = set()
 						with open(folderAbstracts + eid + ".json") as json_file:
+							found = False
 							data = json.load(json_file)
 							affiliationData = data["abstracts-retrieval-response"]["item"]["bibrecord"]["head"]["author-group"]
-							#print ("Affiliation")
-							#print (affiliationData)
 							if type(affiliationData) is not list:
-								affiliationList = [affiliationData]
-							for affiliation in affiliationList:
+								affiliationData = [affiliationData]
+							for affiliation in affiliationData:
+								if found:
+									break
 								for author in affiliation["author"]:
-									name = author["ce:given-name"]
-									surname = author["ce:surname"]
-									auid = author["@auid"]
-									if auid not in authorsAll:
-										authorsAll[auid] = {"name": name, "surname": surname}
-									authorsPublication.add(auid)
-									#print (auid)
-							#print (authorsPublication)
-							if len(authorsIntersection) is 0:
-								#print ("intersection len 0:")
-								authorsIntersection = authorsPublication
-								#print (authorsIntersection)
-							else:
-								#print ("intersection len != 0:")
-								temp = authorsIntersection.intersection(authorsPublication)
-								authorsIntersection = temp
-								#print (authorsIntersection)
-							#print ()
+									if found:
+										break
+									nameJson = author["ce:given-name"]
+									surnameJson = author["ce:surname"]
+									indexednameJson = author["ce:indexed-name"]
+									auidJson = author["@auid"]
+									if re.sub("[a-z]'", "", surnameCv.lower().replace(" ", "")) in re.sub("[a-z]'", "", indexednameJson.lower().replace(" ", "").replace("-","")):
+										#print ("FOUND")
+										if res[idCv] == '':
+											res[idCv] = auidJson
+										elif res[idCV] != auidJson:
+											print ("Multiple EIDS - " + idCv)
+											
+										found = True
+										numFound += 1
+							if not found:
+								print ("Author not found: %s %s %s %s" % (idCv, nameCv, surnameCv, eid))
+								numNotFound += 1
+										
 					except:
 						print ("ERROR - CV: " + idCv + ", EID not found for DOI: " + doi)
-				if len(authorsIntersection) > 1:
-					print (authorsIntersection)
-					counterGreaterOne += 1
-					print ()
-				elif len(authorsIntersection) is 0:
-					counterZero += 1
-	print ("All: " + str(counterAll))
-	print ("Zero: " + str(counterZero))
-	print ("GreaterOne: " + str(counterGreaterOne))
-	
+						#continue
+		print (numFound)
+		print (numNotFound)
+		
+		print ("NOT FOUND")
+		for idCv in res:
+			if res[idCv] == "":
+				print (idCv)
+				
+		strRes = "SESSIONE	FASCIA	SETTORE	BIBL?	ID CV	COGNOME	NOME	SCOPUS ID	NUMERO DOI ESISTENTI	DOIS ESISTENTI	DOIS NON ESISTENTI	I1	I2	I3	SETTORE CONCORSUALE	SSD	S1	S2	S3\n"
+		with open(tsvIn, newline='') as csvfile:
+			spamreader = csv.DictReader(csvfile, delimiter='\t')
+			for row in spamreader:
+				if row['SETTORE'].replace('-','/') in sectors:
+					strRes += "\t".join([row["SESSIONE"], row["FASCIA"], row["SETTORE"], row["BIBL?"], row["ID CV"], row["COGNOME"], row["NOME"], res[row["ID CV"]], row["NUMERO DOI ESISTENTI"], row["DOIS ESISTENTI"], row["DOIS NON ESISTENTI"], row["I1"], row["I2"], row["I3"], row["SETTORE CONCORSUALE"], row["SSD"], row["S1"], row["S2"], row["S3"]]) + "\n"
+			
+		text_file = open(tsvOut, "w")
+		text_file.write(strRes)
+		text_file.close()
+
 def getDoisSet(f):
 	doisList = list()
 	with open(f, newline='') as csvfile:
@@ -96,3 +147,48 @@ def doiEidMap(folder):
 			except:
 				print ('*** EID/DOI ERROR: ' + filename_withPath + " ***")	
 	return res
+
+'''
+def getAuthorsNames(tsvFN,csvFN):
+	idCvTsv = set()
+	#doisList = list()
+	# Load TSV
+	with open(tsvFN, newline='') as csvfile:
+		spamreader = csv.DictReader(csvfile, delimiter='\t')
+		for row in spamreader:
+			#print (row['SETTORE'].replace('-','/'))
+			if row['SETTORE'].replace('-','/') in sectors:
+				#dois = ast.literal_eval(row['DOIS ESISTENTI'])
+				idCv = row['ID CV']
+				idCvTsv.add(idCv)
+				
+				#doisList.extend(dois)
+	#doisTsv = set(doisList)
+	#print (len(doisTsv))
+	
+	
+	idCvCsv = dict()
+	# LOAD CSV
+	with open(csvFN, newline='') as csvfile:
+		spamreader = csv.DictReader(csvfile, delimiter=',')
+		for row in spamreader:
+			#print (row['SETTORE'].replace('-','/'))
+			#if row["doi"] in doisTsv:
+			#	doisTsv.remove(row["doi"])
+			idCv = row["idCV"]
+			nome = row['Nome']
+			cognome = row['Cognome']
+			idSoggetto = row['id_soggetto']
+			idBoh = row['id']
+			idCvCsv[idCv] = [nome, cognome, idSoggetto, idBoh]
+	
+	for idCv in idCvTsv:
+		if idCv in idCvCsv:
+			print (idCv + "," + ",".join(idCvCsv[idCv]))
+		else:
+			print (idCv + ",,")
+
+	print (len(doisTsv))
+	
+	return True
+'''

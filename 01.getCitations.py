@@ -6,7 +6,8 @@ import datetime
 import time
 import os 
 import json
-#from glob import glob
+from glob import glob
+import ast
 
 import urllib.parse
 
@@ -14,10 +15,12 @@ import apikeys
 import mylib
 
 pathInput = "data/input/"
-pathOutput = "data/output/abstracts/"
+pathOutput = "data/output/abstracts/" + ("_".join(mylib.sectors)).replace("/", "") + "/"
 inputTsv = pathInput + '09.dois-candidati-2016-ordered.tsv'
+outputTsv = pathInput + "_".join(mylib.sectors).replace("/","") + "_withNames.tsv"
 
 apiURL_AbstractDoi = 'https://api.elsevier.com/content/abstract/doi/'
+
 
 ##### TODO ##### TODO ##### TODO ##### TODO ##### TODO #####
 # controlla che json dell'abstract ritornato da api sia ok
@@ -64,7 +67,6 @@ def getAbstract(doi, max_retry=2, retry_delay=1):
 		if r.status_code == 429:
 			print ("Quota exceeded for key " + apikeys.keys[0] + " - EXIT.")
 			apikeys.keys.pop(0)
-			#sys.exit()
 		
 		elif r.status_code > 200 and r.status_code < 500:
 			print(u"{}: errore nella richiesta: {}".format(r.status_code, r.url))
@@ -117,10 +119,14 @@ def getAbstracts(dois):
 
 
 
+# Add authors names and surnames to the TSV ()
+mylib.addAuthorsNamesToTsv(inputTsv, outputTsv, pathInput)
+
+sys.exit()
+
 #getAbstracts(['10.1016/j.scico.2011.10.006', '10.1016/S0005-2736(99)00198-4', '10.1016/S0014-5793(01)03313-0'])
 dois = mylib.getDoisSet(inputTsv)
-print (len(dois))
-#sys.exit()
+#print (len(dois))
 getAbstracts(dois)
 
 # get delta time

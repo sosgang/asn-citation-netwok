@@ -1,3 +1,10 @@
 data/input/09*
+data/input/01*
+data/input/13*
+data/input/quad*
+data/output/cit*
+data/output/doi*
+data/output/abstracts/01*
+data/output/abstracts/13*
 apikeys.py
 __pycache__/
