@@ -21,7 +21,7 @@ sector = '01/B1'
 
 pathInput = "../data/input/"
 fileCercauniversita = pathInput + "cercauniversita/" + sector.replace("/","") + "_2016.csv"
-fileTsv = pathInput + "01B1_09H1_withNames_scopusId_editedAddedMissingScopusId.tsv"
+#fileTsv = pathInput + "01B1_09H1_withNames_scopusId_editedAddedMissingScopusId.tsv"
 
 def searchAuthor(name, max_retry=2, retry_delay=1):
 	
@@ -31,10 +31,13 @@ def searchAuthor(name, max_retry=2, retry_delay=1):
 
 		#print(apiURL_AbstractDoi + urllib.parse.quote(doi))
 		query = 'AUTH(' + name + ')'
-		queryEncoded = urllib.parse.quote(query)
-		params = {'apikey':apikeys.keys[0], 'httpAccept':'application/json', 'query':queryEncoded} #, 'view':'FULL'}
+		#queryEncoded = urllib.parse.quote(query)
+		params = {'apikey':apikeys.keys[0], 'httpAccept':'application/json', 'query':query} #, 'view':'FULL'}
 		r = requests.get(apiURL_search, params=params)
-				
+		print (r.status_code)
+		print(r.url)
+		
+			
 		#if self.raw_output:
 		#	self.save_raw_response(r.text)
 
@@ -58,8 +61,9 @@ def searchAuthor(name, max_retry=2, retry_delay=1):
 	if retry >= max_retry: 
 		return None 
  
-	json = r.json() 
-	json['request-time'] = str(datetime.datetime.now().utcnow())
+	#json = r.json()
+	json = r.text
+	#json['request-time'] = str(datetime.datetime.now().utcnow())
 	# TO DECODE:
 	#oDate = datetime.datetime.strptime(json['request-time'], '%Y-%m-%d %H:%M:%S.%f')
 	return json
