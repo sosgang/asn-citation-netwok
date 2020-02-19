@@ -46,7 +46,49 @@ def addAuthorsNamesToTsv(tsvIn, tsvOut, pathPdf):
 	text_file = open(tsvOut, "w")
 	text_file.write(res)
 	text_file.close()
-	
+
+class AutoVivification(dict):
+	"""Implementation of perl's autovivification feature."""
+	def __getitem__(self, item):
+		try:
+			return dict.__getitem__(self, item)
+		except KeyError:
+			value = self[item] = type(self)()
+			return value
+
+def addAsnOutcomesToTsv(sectors, inputTsv, outputTsv, pathAsnDownload):
+	esitiMap = AutoVivification()
+	for sector in sectors:
+		for quadrimestre in range(1,6):
+			for fascia in range(1,3):
+				htmlFile = pathAsnDownload + "quadrimestre-" + str(quadrimestre) + "/fascia-" + str(fascia) + "/" + sector + "_risultati.html"
+				print (htmlFile)
+				tree = html.parse(htmlFile)
+				els = tree.xpath('//table[position()=last()]/tbody/tr')
+				for el in els:
+					linkPdfCv = el.xpath('td[3]/a/@href')
+					if len(linkPdfCv) != 1:
+						print ("XPATH ERROR")
+						sys.exit()
+					idCvEsito = linkPdfCv[0].split("/")[7]
+					elEsito = el.xpath('td[7]')
+					if len(elEsito) != 1:
+						print ("XPATH ERROR")
+						sys.exit()
+					esito = re.sub(r'\s+', '', elEsito[0].text)
+					print ("\t%s: %s" % (idCvEsito, esito))
+					esitiMap[sector][str(quadrimestre)][str(fascia)][idCvEsito] = esito
+					
+	'''
+
+	with open(inputTsv, newline='') as csvfile:
+		spamreader = csv.DictReader(csvfile, delimiter='\t')
+		for row in spamreader:
+			idCv = row["ID CV"]
+			fascia = row["FASCIA"]
+			quadrimestre = row["SESSIONE"]
+			settore = row["SETTORE"]
+	'''	
 # Get Scopus authors' ids (using names in the TSV and JSON abstracts)
 def addAuthorsIdScopusToTsv(tsvIn, folderAbstracts, doiEidMap, tsvOut):
 	res = dict()
