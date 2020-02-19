@@ -18,6 +18,8 @@ pathInput = "data/input/"
 pathOutput = "data/output/abstracts/" + ("_".join(mylib.sectors)).replace("/", "") + "/"
 inputTsv = pathInput + '09.dois-candidati-2016-ordered.tsv'
 outputTsv = pathInput + "_".join(mylib.sectors).replace("/","") + "_withNames.tsv"
+outputTsvWithAsnOutcomes = outputTsv.replace(".tsv","") + "_AsnOutcomes.tsv"
+pathAsnDownload = "/var/mobiliti/data/in/2016/candidati/"
 
 apiURL_AbstractDoi = 'https://api.elsevier.com/content/abstract/doi/'
 
@@ -120,7 +122,9 @@ def getAbstracts(dois):
 
 
 # Add authors names and surnames to the TSV ()
-mylib.addAuthorsNamesToTsv(inputTsv, outputTsv, pathInput)
+#mylib.addAuthorsNamesToTsv(inputTsv, outputTsv, pathInput)
+
+mylib.addAsnOutcomesToTsv(mylib.sectors, outputTsv, outputTsvWithAsnOutcomes, pathAsnDownload)
 
 sys.exit()
 
