@@ -4,6 +4,8 @@ from glob import glob
 import json
 import sys
 import re
+#from io import StringIO, BytesIO
+from lxml import html
 
 #sectors = ['13/D1', '13/D2', '13/D3', '01/B1', '09/H1']
 sectors = ['01/B1','09/H1']
@@ -61,8 +63,8 @@ def addAsnOutcomesToTsv(sectors, inputTsv, outputTsv, pathAsnDownload):
 	for sector in sectors:
 		for quadrimestre in range(1,6):
 			for fascia in range(1,3):
-				htmlFile = pathAsnDownload + "quadrimestre-" + str(quadrimestre) + "/fascia-" + str(fascia) + "/" + sector + "_risultati.html"
-				print (htmlFile)
+				htmlFile = pathAsnDownload + "quadrimestre-" + str(quadrimestre) + "/fascia-" + str(fascia) + "/" + sector.replace("/", "-") + "/" + sector.replace("/", "-") + "_risultati.html"
+				#print (htmlFile)
 				tree = html.parse(htmlFile)
 				els = tree.xpath('//table[position()=last()]/tbody/tr')
 				for el in els:
@@ -76,11 +78,12 @@ def addAsnOutcomesToTsv(sectors, inputTsv, outputTsv, pathAsnDownload):
 						print ("XPATH ERROR")
 						sys.exit()
 					esito = re.sub(r'\s+', '', elEsito[0].text)
-					print ("\t%s: %s" % (idCvEsito, esito))
-					esitiMap[sector][str(quadrimestre)][str(fascia)][idCvEsito] = esito
-					
-	'''
-
+					#print ("\t%s: %s" % (idCvEsito, esito))
+					esitiMap[sector.replace("/","-")][str(quadrimestre)][str(fascia)][idCvEsito] = esito
+	#print (esitiMap)			
+	#sys.exit()
+	
+	res = "SESSIONE	FASCIA	SETTORE	BIBL?	ID CV	COGNOME	NOME	NUMERO DOI ESISTENTI	DOIS ESISTENTI	DOIS NON ESISTENTI	I1	I2	I3	SETTORE CONCORSUALE	SSD	S1	S2	S3	ESITO\n"
 	with open(inputTsv, newline='') as csvfile:
 		spamreader = csv.DictReader(csvfile, delimiter='\t')
 		for row in spamreader:
@@ -88,7 +91,15 @@ def addAsnOutcomesToTsv(sectors, inputTsv, outputTsv, pathAsnDownload):
 			fascia = row["FASCIA"]
 			quadrimestre = row["SESSIONE"]
 			settore = row["SETTORE"]
-	'''	
+			esito = esitiMap[settore][quadrimestre][fascia][idCv]
+			#print (esito)
+			res += "\t".join([row["SESSIONE"], row["FASCIA"], row["SETTORE"], row["BIBL?"], row["ID CV"], row["COGNOME"], row["NOME"], row["NUMERO DOI ESISTENTI"], row["DOIS ESISTENTI"], row["DOIS NON ESISTENTI"], row["I1"], row["I2"], row["I3"], row["SETTORE CONCORSUALE"], row["SSD"], row["S1"], row["S2"], row["S3"], esito]) + "\n"
+			
+	text_file = open(outputTsv, "w")
+	text_file.write(res)
+	text_file.close()
+			
+
 # Get Scopus authors' ids (using names in the TSV and JSON abstracts)
 def addAuthorsIdScopusToTsv(tsvIn, folderAbstracts, doiEidMap, tsvOut):
 	res = dict()

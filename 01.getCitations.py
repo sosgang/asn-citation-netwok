@@ -15,6 +15,7 @@ import apikeys
 import mylib
 
 pathInput = "data/input/"
+pathMobilitiData = pathInput + "mobiliti-2016/"
 pathOutput = "data/output/abstracts/" + ("_".join(mylib.sectors)).replace("/", "") + "/"
 inputTsv = pathInput + '09.dois-candidati-2016-ordered.tsv'
 outputTsv = pathInput + "_".join(mylib.sectors).replace("/","") + "_withNames.tsv"
@@ -122,7 +123,7 @@ def getAbstracts(dois):
 
 
 # Add authors names and surnames to the TSV ()
-#mylib.addAuthorsNamesToTsv(inputTsv, outputTsv, pathInput)
+#mylib.addAuthorsNamesToTsv(inputTsv, outputTsv, pathMobilitiData)
 
 mylib.addAsnOutcomesToTsv(mylib.sectors, outputTsv, outputTsvWithAsnOutcomes, pathAsnDownload)
 
