@@ -16,7 +16,7 @@ sectors = ['01/B1','09/H1']
 
 pathInput = "../data/input/"
 fileCercauniversita = pathInput + "cercauniversita/" + sectors.replace() + ".csv"
-fileTsv = pathInput + "01B1_09H1_withNames_scopusId_editedAddedMissingScopusId.tsv"
+fileTsv = pathInput + "01B1_09H1_withNames_AsnOutcomes_scopusId_editedAddedMissingScopusId.tsv"
 
 tsv = dict()
 with open(fileTsv, newline='') as csvfile:
@@ -48,3 +48,10 @@ with open(fileCercauniversita, newline='') as csvfile:
 print (len(cercauni))
 
 print (matchCounter)
+
+'''
+import requests
+params = {'apikey': '5953888c807d52ee017df48501d3e598', 'scopus_id': '0033001756', 'httpAccept':'application/json'}
+r = requests.get('https://api.elsevier.com/content/abstract/citation-count', params=par)
+print(r.json())
+'''
