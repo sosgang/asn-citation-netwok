@@ -13,18 +13,14 @@ import urllib.parse
 
 sys.path.append('..')
 import apikeys
+import mylib
 
 apiURL_search = 'https://api.elsevier.com/content/search/author'
-#sectors = ['01/B1','09/H1']
-#sectors = ['13/D1', '13/D2', '13/D3']
-#sector = '09/H1'
-sectors = ['13/D1', '13/D2']
 # scopus author search settings, see https://dev.elsevier.com/api_key_settings.html 
 authorsPerPage = 200
 numItemLimit = 5000
 
 pathInput = "../data/input/cercauniversita/"
-#fileTsv = pathInput + "01B1_09H1_withNames_scopusId_editedAddedMissingScopusId.tsv"
 pathOutput = "../data/input/authors-search/"
 anno = "2016"
 
@@ -81,55 +77,6 @@ def searchAuthor(firstnames, lastnames, idCercauni, sector, max_retry=2, retry_d
 			print ("numRes: %d, numStart: %d, numPerPage: %d" % (numRes, numStart, numPerPage))
 		return res
 	return None
-	'''
-	if os.path.isfile(filepath):
-		with open(filepath) as json_file:
-			data = json.load(json_file)
-			numRes = int(data['search-results']['opensearch:totalResults'])
-			#res.append(data)
-			numPerPage = int(data['search-results']['opensearch:itemsPerPage'])
-			numStart = int(data['search-results']['opensearch:startIndex'])
-			if numRes == 0:
-				return None
-			while (numStart + numPerPage) < numRes and start < numItemLimit:
-				print (' '.join(lastname) + ': ' + str(start))
-				data = searchAuthorScopus(firstname, lastname, start)
-				res.append(data)
-				numRes = int(data['search-results']['opensearch:totalResults'])
-				numPerPage = int(data['search-results']['opensearch:itemsPerPage'])
-				numStart = int(data['search-results']['opensearch:startIndex'])
-				print ("numRes: %d, numStart: %d, numPerPage: %d" % (numRes, numStart, numPerPage))
-				start += authorsPerPage
-			return res
-			#return True #data
-	else:
-		return None
-	'''
-	
-	'''
-	if os.path.isfile(filepath):
-		with open(filepath) as json_file:
-			data = json.load(json_file)
-			numRes = int(data['search-results']['opensearch:totalResults'])
-			#res.append(data)
-			numPerPage = int(data['search-results']['opensearch:itemsPerPage'])
-			numStart = int(data['search-results']['opensearch:startIndex'])
-			if numRes == 0:
-				return None
-			while (numStart + numPerPage) < numRes and start < numItemLimit:
-				print (' '.join(lastname) + ': ' + str(start))
-				data = searchAuthorScopus(firstname, lastname, start)
-				res.append(data)
-				numRes = int(data['search-results']['opensearch:totalResults'])
-				numPerPage = int(data['search-results']['opensearch:itemsPerPage'])
-				numStart = int(data['search-results']['opensearch:startIndex'])
-				print ("numRes: %d, numStart: %d, numPerPage: %d" % (numRes, numStart, numPerPage))
-				start += authorsPerPage
-			return res
-			#return True #data
-	else:
-		return None
-	'''
 
 def searchAuthorScopus(firstname, lastname, start=0, max_retry=2, retry_delay=1):
 	
@@ -138,7 +85,6 @@ def searchAuthorScopus(firstname, lastname, start=0, max_retry=2, retry_delay=1)
 	query = 'AUTHFIRST(' + " ".join(firstname) + ') and AUTHLAST(' + " ".join(lastname) + ')'
 	while retry < max_retry and cont:
 
-		#query = 'AUTH(' + name + ')'
 		#queryEncoded = urllib.parse.quote(query)
 		params = {
 			'apikey':apikeys.keys[0],
@@ -146,7 +92,7 @@ def searchAuthorScopus(firstname, lastname, start=0, max_retry=2, retry_delay=1)
 			'query':query,
 			'count': str(authorsPerPage),
 			'start': str(start)
-		} #, 'view':'FULL'}
+		}
 		r = requests.get(apiURL_search, params=params)
 			
 		#if self.raw_output:
@@ -174,19 +120,14 @@ def searchAuthorScopus(firstname, lastname, start=0, max_retry=2, retry_delay=1)
 		
 	json = r.json()
 	numRes = int(json['search-results']['opensearch:totalResults'])
-	#numPerPage = int(data['search-results']['opensearch:itemsPerPage'])
-	#if numPerPage < numRes:
-	#	pass
-	#if numRes != 1:
 	print(str(numRes) + ": " + query)
-	#json = r.text
-	#json['request-time'] = str(datetime.datetime.now().utcnow())
-	# TO DECODE:
-	#oDate = datetime.datetime.strptime(json['request-time'], '%Y-%m-%d %H:%M:%S.%f')
 	return json
 	
-
-for sector in sectors:
+# Use the Scopus Author Search API to search for Author Ids of the people in cercauniversita.
+# output: 
+#   - 1 JSON file (in data/input/authors-search/) for each search/person (if numResults > 0)
+#   - 1 TSV (one for each sector) with the list of people not found in Scopus (numResults = 0)
+for sector in mylib.sectors:
 	#fileCercauniversita = pathInput + "cercauniversita/" + sector.replace("/","") + "_2016_id_short.csv"
 	fileCercauniversita = pathInput + sector.replace("/","") + "_" + anno + "_id.csv"
 	print (fileCercauniversita)	
