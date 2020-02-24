@@ -125,6 +125,7 @@ for tsvFilename in [inputTsvAuto,inputTsvManual]:
 	with open(tsvFilename, newline='') as tsvFile:
 		spamreader = csv.DictReader(tsvFile, delimiter='\t')
 		table = list(spamreader)
+		'''
 		for row in table:
 			idCercauni = row["cercauniId"]
 			authorId = row["AuthorId"]
@@ -134,3 +135,12 @@ for tsvFilename in [inputTsvAuto,inputTsvManual]:
 				print ('\tSaved to file.')
 			else:
 				print ('\tNone -> not saved.')
+		'''
+		
+		print ("Missing publications lists:")
+		print ("cercauniId	AuthorId\n")
+		for row in table:
+			idCercauni = row["cercauniId"]
+			authorId = row["AuthorId"]
+			if not os.path.exists(os.path.join(pathOutput, authorId + '.json')):
+				print (idCercauni + "\t" + authorId + "\n")
