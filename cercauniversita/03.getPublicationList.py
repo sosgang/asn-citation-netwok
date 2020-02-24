@@ -17,12 +17,12 @@ import mylib
 
 anno = "2016"
 
-inputProva = "../data/input/cercauniversita/" + "_".join(mylib.sectors) + "_" + anno "_PROVA.tsv"
-inputTsvAuto = "../data/input/cercauniversita/" + "_".join(mylib.sectors) + "_" + anno + "_id_MAPPING-AUTO.tsv"
-inputTsvManual = "../data/input/cercauniversita/" + "_".join(mylib.sectors) + "_" + anno + "_id_MANUALCHECKED.tsv"
-inputPathAbstracts = "../data/output/abstracts/" + "_".join(mylib.sectors) + "/"
+inputProva = "../data/input/cercauniversita/" + "_".join(mylib.sectors).replace("/","") + "_" + anno + "_PROVA.tsv"
+inputTsvAuto = "../data/input/cercauniversita/" + "_".join(mylib.sectors).replace("/","") + "_" + anno + "_id_MAPPING-AUTO.tsv"
+inputTsvManual = "../data/input/cercauniversita/" + "_".join(mylib.sectors).replace("/","") + "_" + anno + "_id_MANUALCHECKED.tsv"
+inputPathAbstracts = "../data/output/abstracts/" + "_".join(mylib.sectors).replace("/","") + "/"
 
-outputPath = "../data/output/publicationsList/"
+outputPath = "../data/output/publicationsList/" + "_".join(mylib.sectors).replace("/","") + "/"
 
 apiURL_Search = "https://api.elsevier.com/content/search/scopus"
 
@@ -61,11 +61,11 @@ def getPublicationPage(authorId, start, max_retry=2, retry_delay=1):
 	if retry >= max_retry: 
 		return None 
  
-	json = r.json() 
-	json['request-time'] = str(datetime.datetime.now().utcnow())
+	j = r.json() 
+	j['request-time'] = str(datetime.datetime.now().utcnow())
 	# TO DECODE:
 	#oDate = datetime.datetime.strptime(json['request-time'], '%Y-%m-%d %H:%M:%S.%f')
-	return json	
+	return j	
 
 def mergeJson(json1, json2):
 	try:
@@ -75,30 +75,31 @@ def mergeJson(json1, json2):
 		pubs1 = json1["search-results"]["entry"]
 		pubs2 = json2["search-results"]["entry"]
 		pubs12 = pubs1 + pubs2
-		pubs1["search-results"]["entry"] = pubs12
+		json1["search-results"]["entry"] = pubs12
 	except:
-		...
-	return pubs12
+		print ("ERROR in mergeJson()")
+	return json1
 	
 def getPublicationList(authorId):
-	json = getPublicationPage(authorId, 0)
+	j = getPublicationPage(authorId, 0)
 	try:
-		numResults = int(json["search-results"]["opensearch:totalResults"])
+		numResults = int(j["search-results"]["opensearch:totalResults"])
 		numDownloaded = 25
 		while numDownloaded < numResults:
-			jsonPart = getPublicationPage(authorId, numDownloaded)
-			json = mergeJson(json, jsonPart)
+			jPart = getPublicationPage(authorId, numDownloaded)
+			j = mergeJson(j, jPart)
 			numDownloaded += 25
 	except:
-		...
-	return json
+		print ("ERROR in getPublicationList()")
+	return j
 
 ##### TODO ##### TODO ##### TODO ##### TODO ##### TODO #####
 # controlla che json dell'abstract ritornato da api sia ok
 ##### TODO ##### TODO ##### TODO ##### TODO ##### TODO #####
 def checkAbsFormat(j):
+	#print (j)
 	numRes = int(j["search-results"]["opensearch:totalResults"])
-	pubs = json["search-results"]["entry"]
+	pubs = j["search-results"]["entry"]
 	if numRes == len(pubs):
 		return True
 	else:
@@ -120,7 +121,7 @@ def saveJsonPubs(j, authorId, pathOutput):
 	else:
 		return False
 		
-for tsvFilename in [inputProva] #[inputTsvAuto,inputTsvManual]
+for tsvFilename in [inputTsvAuto,inputTsvManual]:
 	with open(tsvFilename, newline='') as tsvFile:
 		spamreader = csv.DictReader(tsvFile, delimiter='\t')
 		table = list(spamreader)
@@ -128,8 +129,8 @@ for tsvFilename in [inputProva] #[inputTsvAuto,inputTsvManual]
 			idCercauni = row["cercauniId"]
 			authorId = row["AuthorId"]
 			print (authorId)
-			json = getPublicationList(authorId)
-			if json is not None and saveJsonPubs(json, authorId, outputPath):
+			j = getPublicationList(authorId)
+			if j is not None and saveJsonPubs(j, authorId, outputPath):
 				print ('\tSaved to file.')
 			else:
 				print ('\tNone -> not saved.')
