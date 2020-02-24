@@ -17,7 +17,7 @@ import apikeys
 #pathInput = "../data/input/authors-search/"
 pathInput = "../data/input/"
 pathInputCsv = pathInput + "cercauniversita/"
-pathInputJson = pathInput + "authors-search/"
+pathInputJson = pathInput + "authors-search-v2/"
 
 sectors = ["01/B1", "09/H1"]
 anno = "2016"

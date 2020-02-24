@@ -29,7 +29,7 @@ inputTsvAtenei = pathInput + "ListaAteneiSorted.tsv"
 def searchAuthor(firstnames, lastnames, idCercauni, sector, ateneo='', area='', max_retry=2, retry_delay=1):
 	start = 0
 	filepath = os.path.join(pathOutput + sector.replace("/","") + "/", idCercauni + '.json')
-	data = searchAuthorScopus(firstnames, lastnames, start, ateneo, area)
+	data = searchAuthorScopus(firstnames, lastnames, ateneo, area, start)
 	numRes = int(data['search-results']['opensearch:totalResults'])
 	numPerPage = int(data['search-results']['opensearch:itemsPerPage'])
 	numStart = int(data['search-results']['opensearch:startIndex'])
@@ -45,7 +45,7 @@ def searchAuthor(firstnames, lastnames, idCercauni, sector, ateneo='', area='', 
 				for lastname in lastnames:
 					temp.append({'fn': [firstname], 'sn': [lastname]})
 		for curr in temp:
-			data = searchAuthorScopus(curr['fn'], curr['sn'], 0, ateneo, area) #, start)
+			data = searchAuthorScopus(curr['fn'], curr['sn'], ateneo, area, 0) #, start)
 			numRes = int(data['search-results']['opensearch:totalResults'])
 			numPerPage = int(data['search-results']['opensearch:itemsPerPage'])
 			numStart = int(data['search-results']['opensearch:startIndex'])
@@ -59,7 +59,7 @@ def searchAuthor(firstnames, lastnames, idCercauni, sector, ateneo='', area='', 
 				else:
 					res = [data]
 					while (numStart + numPerPage) < numRes: # and start < numItemLimit:
-						data = searchAuthorScopus(curr['fn'], curr['sn'], numStart+numPerPage, ateneo, area)
+						data = searchAuthorScopus(curr['fn'], curr['sn'], ateneo, area, numStart+numPerPage)
 						res.append(data)
 						numRes = int(data['search-results']['opensearch:totalResults'])
 						numPerPage = int(data['search-results']['opensearch:itemsPerPage'])
@@ -70,7 +70,7 @@ def searchAuthor(firstnames, lastnames, idCercauni, sector, ateneo='', area='', 
 	else:
 		res = [data]
 		while (numStart + numPerPage) < numRes: #and start < numItemLimit:
-			data = searchAuthorScopus(firstnames, lastnames, numStart+numPerPage, ateneo, area)
+			data = searchAuthorScopus(firstnames, lastnames, ateneo, area, numStart+numPerPage)
 			res.append(data)
 			numRes = int(data['search-results']['opensearch:totalResults'])
 			numPerPage = int(data['search-results']['opensearch:itemsPerPage'])
@@ -79,7 +79,7 @@ def searchAuthor(firstnames, lastnames, idCercauni, sector, ateneo='', area='', 
 		return res
 	return None
 
-def searchAuthorScopus(firstname, lastname, start=0, ateneo, area, max_retry=3, retry_delay=1):
+def searchAuthorScopus(firstname, lastname, ateneo, area, start=0, max_retry=3, retry_delay=1):
 	
 	retry = 0
 	cont = True
@@ -87,9 +87,9 @@ def searchAuthorScopus(firstname, lastname, start=0, ateneo, area, max_retry=3, 
 	#AFFIL()
 	query = 'AUTHFIRST(' + " ".join(firstname) + ') and AUTHLAST(' + " ".join(lastname) + ')'
 	if ateneo != '':
-			query += " AND AFFIL(" + ateneo + ")"
-		if area != '':
-			query += " AND SUBJAREA(" + area + ")"
+		query += " AND AFFIL(" + ateneo + ")"
+	if area != '':
+		query += " AND SUBJAREA(" + area + ")"
 	
 	while retry < max_retry and cont:
 		#queryEncoded = urllib.parse.quote(query)
@@ -197,7 +197,7 @@ with open(inputTsvAtenei, newline='') as csvfile:
 
 for sector in mylib.sectors:
 	#fileCercauniversita = pathInput + "cercauniversita/" + sector.replace("/","") + "_2016_id_short.csv"
-	fileCercauniversita = pathInput + sector.replace("/","") + "_" + anno + "_id_sample.csv"
+	fileCercauniversita = pathInput + sector.replace("/","") + "_" + anno + "_id.csv"
 	print (fileCercauniversita)	
 
 	missing = list()
@@ -245,6 +245,7 @@ for sector in mylib.sectors:
 				print ("%s, %s: not found" % (idCercauni, sn))
 				missing.append(idCercauni)
 
-print (missing)
-
+print ("Missing (i.e. no match found):")
+for el in missing:
+	print (el)
 
