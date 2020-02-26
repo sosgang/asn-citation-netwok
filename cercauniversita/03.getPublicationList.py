@@ -20,7 +20,7 @@ anno = "2016"
 inputProva = "../data/input/cercauniversita/" + "_".join(mylib.sectors).replace("/","") + "_" + anno + "_PROVA.tsv"
 inputTsvAuto = "../data/input/cercauniversita/" + "_".join(mylib.sectors).replace("/","") + "_" + anno + "_id_MAPPING-AUTO.tsv"
 inputTsvManual = "../data/input/cercauniversita/" + "_".join(mylib.sectors).replace("/","") + "_" + anno + "_id_MANUALCHECKED.tsv"
-inputPathAbstracts = "../data/output/abstracts/" + "_".join(mylib.sectors).replace("/","") + "/"
+#inputPathAbstracts = "../data/output/abstracts/" + "_".join(mylib.sectors).replace("/","") + "/"
 
 outputPath = "../data/output/publicationsList/" + "_".join(mylib.sectors).replace("/","") + "/"
 
@@ -81,18 +81,27 @@ def mergeJson(json1, json2):
 	return json1
 	
 def getPublicationList(authorId):
-	j = getPublicationPage(authorId, 0)
-	try:
-		numResults = int(j["search-results"]["opensearch:totalResults"])
-		numDownloaded = 25
-		while numDownloaded < numResults:
-			jPart = getPublicationPage(authorId, numDownloaded)
-			j = mergeJson(j, jPart)
-			numDownloaded += 25
-	except:
-		print ("ERROR in getPublicationList()")
-	return j
-
+	jFilename = outputPath + authorId + ".json"
+	if os.path.exists(jFilename):
+		# json file already downloaded => return None
+		return None
+		#with open(jFilename) as json_file:
+		#	j = json.load(json_file)
+		#	return j
+	else:
+		print ("\tNOT FOUND: " + authorId)
+		j = getPublicationPage(authorId, 0)
+		try:
+			numResults = int(j["search-results"]["opensearch:totalResults"])
+			numDownloaded = 25
+			while numDownloaded < numResults:
+				jPart = getPublicationPage(authorId, numDownloaded)
+				j = mergeJson(j, jPart)
+				numDownloaded += 25
+		except:
+			print ("ERROR in getPublicationList()")
+		return j
+		
 ##### TODO ##### TODO ##### TODO ##### TODO ##### TODO #####
 # controlla che json dell'abstract ritornato da api sia ok
 ##### TODO ##### TODO ##### TODO ##### TODO ##### TODO #####
@@ -125,18 +134,21 @@ for tsvFilename in [inputTsvAuto,inputTsvManual]:
 	with open(tsvFilename, newline='') as tsvFile:
 		spamreader = csv.DictReader(tsvFile, delimiter='\t')
 		table = list(spamreader)
-		'''
 		for row in table:
 			idCercauni = row["cercauniId"]
 			authorId = row["AuthorId"]
 			print (authorId)
+			
+			# skip authors for whom no scopus authorId has been found
+			if authorId == "":
+				continue
+			
 			j = getPublicationList(authorId)
 			if j is not None and saveJsonPubs(j, authorId, outputPath):
 				print ('\tSaved to file.')
 			else:
-				print ('\tNone -> not saved.')
+				print ('\tNone -> not saved (i.e. not found or json already downloaded).')
 		'''
-		
 		print ("Missing publications lists:")
 		print ("cercauniId	AuthorId\n")
 		for row in table:
@@ -144,3 +156,4 @@ for tsvFilename in [inputTsvAuto,inputTsvManual]:
 			authorId = row["AuthorId"]
 			if not os.path.exists(os.path.join(pathOutput, authorId + '.json')):
 				print (idCercauni + "\t" + authorId + "\n")
+		'''
