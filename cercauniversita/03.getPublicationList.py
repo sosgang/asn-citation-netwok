@@ -89,7 +89,7 @@ def getPublicationList(authorId):
 		#	j = json.load(json_file)
 		#	return j
 	else:
-		print ("\tNOT FOUND: " + authorId)
+		#print ("NOT FOUND: " + authorId)
 		j = getPublicationPage(authorId, 0)
 		try:
 			numResults = int(j["search-results"]["opensearch:totalResults"])
@@ -137,7 +137,7 @@ for tsvFilename in [inputTsvAuto,inputTsvManual]:
 		for row in table:
 			idCercauni = row["cercauniId"]
 			authorId = row["AuthorId"]
-			print (authorId)
+			#print (authorId)
 			
 			# skip authors for whom no scopus authorId has been found
 			if authorId == "":
@@ -145,9 +145,9 @@ for tsvFilename in [inputTsvAuto,inputTsvManual]:
 			
 			j = getPublicationList(authorId)
 			if j is not None and saveJsonPubs(j, authorId, outputPath):
-				print ('\tSaved to file.')
+				print (authorId + ': Saved to file.')
 			else:
-				print ('\tNone -> not saved (i.e. not found or json already downloaded).')
+				print (authorId + ': None -> not saved (i.e. not found or json already downloaded).')
 		'''
 		print ("Missing publications lists:")
 		print ("cercauniId	AuthorId\n")
@@ -156,4 +156,19 @@ for tsvFilename in [inputTsvAuto,inputTsvManual]:
 			authorId = row["AuthorId"]
 			if not os.path.exists(os.path.join(pathOutput, authorId + '.json')):
 				print (idCercauni + "\t" + authorId + "\n")
+		
+
+		# OTHER VERSION
+		print ("Missing publications lists:")
+		print ("cercauniId	AuthorId")
+		authors = list()
+		for row in table:
+			idCercauni = row["cercauniId"]
+			authorId = row["AuthorId"]
+			if authorId not in authors:
+				authors.append(authorId)
+			else:
+				print ("+++" + authorId + "+++")
+			if not os.path.exists(os.path.join(outputPath, authorId + '.json')):
+				print (idCercauni + "\t" + authorId)
 		'''
