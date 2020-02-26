@@ -8,8 +8,8 @@ import re
 from lxml import html
 
 #sectors = ['13/D1', '13/D2', '13/D3', '01/B1', '09/H1']
-sectors = ['01/B1','09/H1']
-#sectors = ['13/D1', '13/D2', '13/D3']
+#sectors = ['01/B1','09/H1']
+sectors = ['13/D1', '13/D2', '13/D3']
 
 # Get authors' names and surnames from the cv PDFs
 def addAuthorsNamesToTsv(tsvIn, tsvOut, pathPdf):

@@ -16,7 +16,7 @@ import apikeys
 
 pathInput = "../data/input/"
 pathTsv = pathInput + "cercauniversita/"
-pathAuthorSearch = pathInput + "authors-search/"
+pathAuthorSearch = pathInput + "authors-search-v2/"
 
 sectors = ['13/D1', '13/D2', '13/D3']
 
