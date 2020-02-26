@@ -48,8 +48,8 @@ def testAuthors(authors, area):
 	res = dict()
 	maxDocs = 0
 	for author in authors:
-		numDocs = author["document-count"]
-		if maxDocs != 0 and numDocs < maxDocs:
+		numDocs = int(author["document-count"])
+		if (maxDocs != 0) and (numDocs < maxDocs):
 			continue
 		if maxDocs == 0 or numDocs > maxDocs:
 			if testSubjectArea(author, area):
@@ -81,6 +81,7 @@ for sector in sectors:
 						totalRes = data["search-results"]["opensearch:totalResults"]
 						authors = data["search-results"]["entry"]
 						bestMatch = testAuthors(authors, areaToSearch)
+						#bestMatch = testAuthors(authors, areaToSearch)
 						if "eid" not in bestMatch:
 							#print (idCercauni)
 							manualSearchList.append(idCercauni)
