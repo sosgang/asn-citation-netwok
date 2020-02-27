@@ -7,9 +7,9 @@ import time
 import os 
 import json
 from glob import glob
-import ast
+#import ast
 
-import urllib.parse
+#import urllib.parse
 
 import apikeys
 import mylib
@@ -22,75 +22,10 @@ outputTsv = pathInput + "_".join(mylib.sectors).replace("/","") + "_withNames.ts
 outputTsvWithAsnOutcomes = outputTsv.replace(".tsv","") + "_AsnOutcomes.tsv"
 pathAsnDownload = "/var/mobiliti/data/in/2016/candidati/"
 
-apiURL_AbstractDoi = 'https://api.elsevier.com/content/abstract/doi/'
 
 
-##### TODO ##### TODO ##### TODO ##### TODO ##### TODO #####
-# controlla che json dell'abstract ritornato da api sia ok
-##### TODO ##### TODO ##### TODO ##### TODO ##### TODO #####
-def checkAbsFormat(j):
-	return True
 
-# Salvo usando eid come nome
-def saveJsonAbstract(j):
 
-	if (checkAbsFormat(j)):
-		eid = j['abstracts-retrieval-response']['coredata']['eid']
-		
-		if not os.path.isdir(pathOutput):
-			os.makedirs(pathOutput)
-			
-		counter = 1
-		completepath = os.path.join(pathOutput, eid + '.json')
-
-		with open(completepath, 'w') as outfile:
-			json.dump(j, outfile, indent=3)
-		
-		return True
-
-	else:
-		return False
-
-#'https://api.elsevier.com/content/abstract/scopus_id/0032717048?apikey=5953888c807d52ee017df48501d3e598&httpAccept=application/json&view=FULL'
-def getAbstract(doi, max_retry=2, retry_delay=1):
-	
-	retry = 0
-	cont = True
-	while retry < max_retry and cont:
-
-		params = {'apikey':apikeys.keys[0], 'httpAccept':'application/json'} #, 'view':'FULL'}
-		doiEncoded = urllib.parse.quote(doi)
-		#print(apiURL_AbstractDoi + urllib.parse.quote(doi))
-		r = requests.get(apiURL_AbstractDoi + doiEncoded, params=params)
-				
-		#if self.raw_output:
-		#	self.save_raw_response(r.text)
-
-		# quota exceeded -> http 429 (see https://dev.elsevier.com/api_key_settings.html)
-		if r.status_code == 429:
-			print ("Quota exceeded for key " + apikeys.keys[0] + " - EXIT.")
-			apikeys.keys.pop(0)
-		
-		elif r.status_code > 200 and r.status_code < 500:
-			print(u"{}: errore nella richiesta: {}".format(r.status_code, r.url))
-			return None
-
-		if r.status_code != 200:
-			retry += 1
-			if retry < max_retry:
-				time.sleep(retry_delay)
-			continue
-
-		cont = False 
-			 
-	if retry >= max_retry: 
-		return None 
- 
-	json = r.json() 
-	json['request-time'] = str(datetime.datetime.now().utcnow())
-	# TO DECODE:
-	#oDate = datetime.datetime.strptime(json['request-time'], '%Y-%m-%d %H:%M:%S.%f')
-	return json
 
 # scarica e salva su file (nome=eid.json) json abstract (via scopus API)
 # NB: effettua controllo doi con già abstract scaricato, per non ripetere l'operazione
@@ -111,9 +46,9 @@ def getAbstracts(dois):
 	for doi in dois:
 		if doi not in doisToSkip:
 			print ('Processing ' + doi)
-			jsonAbs = getAbstract(doi)
+			jsonAbs = mylib.getAbstract(doi, 'DOI')
 			if jsonAbs is not None:
-				saveJsonAbstract(jsonAbs)
+				mylib.saveJsonAbstract(jsonAbs,pathOutput)
 				print ('\tSaved to file.')
 			else:
 				print ('\tNone -> not saved.')
