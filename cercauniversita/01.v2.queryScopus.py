@@ -23,6 +23,8 @@ numItemLimit = 5000
 pathInput = "../data/input/cercauniversita/"
 pathOutput = "../data/input/authors-search-v2/"
 anno = "2016"
+#area = "COMP"
+area = ""
 
 inputTsvAtenei = pathInput + "ListaAteneiSorted.tsv"
 
@@ -192,7 +194,7 @@ with open(inputTsvAtenei, newline='') as csvfile:
 	for row in spamreader:
 		ateneoCercauni = row["Ateneo Cercauniversita"]
 		ateneoToSearch = row["Ateneo Search Scopus"]
-		ateneoMap[ateneoCercauni] = ateneoToSearch
+		ateneoMap[ateneoCercauni.replace('"', '')] = ateneoToSearch.replace('"', '')
 
 
 for sector in mylib.sectors:
@@ -210,10 +212,10 @@ for sector in mylib.sectors:
 		for row in table:
 			sn = (row['Cognome e Nome']).split()
 			idCercauni = row['Id']
-			ateneo = row['Ateneo']
+			ateneo = row['Ateneo'].replace('"','')
 			if ateneo not in ateneoMap:
 				print ("ERROR - missing ateneo in ateneoMap: " + ateneo)
-				sis.exit()
+				#sys.exit()
 			#elif ateneoMap[ateneo] == '':
 			#	print (ateneo)
 			lastname = list()
@@ -224,10 +226,10 @@ for sector in mylib.sectors:
 				else:
 					firstname.append(part)
 			# cerco ateneo e area CS
-			data = searchAuthor(firstname, lastname, idCercauni, sector, ateneoMap[ateneo], "COMP")
+			data = searchAuthor(firstname, lastname, idCercauni, sector, ateneoMap[ateneo], area)
 			if data is None:
 				print ("%s, %s: searching area" % (idCercauni, sn))
-				data = searchAuthor(firstname, lastname, idCercauni, sector, "COMP")
+				data = searchAuthor(firstname, lastname, idCercauni, sector, area)
 			if data is None:
 				print ("%s, %s: simple search" % (idCercauni, sn))
 				data = searchAuthor(firstname, lastname, idCercauni, sector)
