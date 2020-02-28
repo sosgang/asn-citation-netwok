@@ -27,7 +27,7 @@ abstractsPath = "../data/output/abstracts/" + "_".join(mylib.sectors).replace("/
 
 # UNUSED
 def doChecks():
-	for tsvFilename in [inputTsvAuto,inputTsvManual,inputTsvCercauniversita]:
+	for tsvFilename in [inputTsvAuto,inputTsvManual,inputTsvCercauniversita] :
 		with open(tsvFilename, newline='') as tsvFile:
 			spamreader = csv.DictReader(tsvFile, delimiter='\t')
 			table = list(spamreader)
@@ -105,12 +105,11 @@ def getEidsToDownload(arrayFiles, pathAbstracts):
 eidSet = getEidsToDownload([inputTsvAuto,inputTsvManual,inputTsvCercauniversita], abstractsPath)
 for eid in eidSet:
 	print ('Processing ' + eid)
-	jsonAbs = mylib.getAbstract(doi, 'EID')
+	jsonAbs = mylib.getAbstract(eid, 'EID', apikeys.keys)
 	if jsonAbs is not None:
 		mylib.saveJsonAbstract(jsonAbs,abstractsPath)
 		print ('\tSaved to file.')
 	else:
 		print ('\tNone -> not saved.')
-	sys.exit()
 
 #getAbstracts(pubsToDownload)
