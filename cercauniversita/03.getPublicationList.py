@@ -20,6 +20,7 @@ anno = "2016"
 inputProva = "../data/input/cercauniversita/" + "_".join(mylib.sectors).replace("/","") + "_" + anno + "_PROVA.tsv"
 inputTsvAuto = "../data/input/cercauniversita/" + "_".join(mylib.sectors).replace("/","") + "_" + anno + "_id_MAPPING-AUTO.tsv"
 inputTsvManual = "../data/input/cercauniversita/" + "_".join(mylib.sectors).replace("/","") + "_" + anno + "_id_MANUALCHECKED.tsv"
+inputTsvCercauniversita = "../data/input/cercauniversita/" + "_".join(mylib.sectors).replace("/","") + "_" + anno + "_id_CERCAUNIVERSITA.tsv"
 #inputPathAbstracts = "../data/output/abstracts/" + "_".join(mylib.sectors).replace("/","") + "/"
 
 outputPath = "../data/output/publicationsList/" + "_".join(mylib.sectors).replace("/","") + "/"
@@ -130,12 +131,12 @@ def saveJsonPubs(j, authorId, pathOutput):
 	else:
 		return False
 		
-for tsvFilename in [inputTsvAuto,inputTsvManual]:
+for tsvFilename in [inputTsvAuto,inputTsvManual,inputTsvCercauniversita]:
 	with open(tsvFilename, newline='') as tsvFile:
 		spamreader = csv.DictReader(tsvFile, delimiter='\t')
 		table = list(spamreader)
 		for row in table:
-			idCercauni = row["cercauniId"]
+			#idCercauni = row["cercauniId"]
 			authorId = row["AuthorId"]
 			#print (authorId)
 			
