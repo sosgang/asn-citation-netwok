@@ -19,6 +19,7 @@ anno = "2016"
 
 inputTsvAuto = "../data/input/cercauniversita/" + "_".join(mylib.sectors).replace("/","") + "_" + anno + "_id_MAPPING-AUTO.tsv"
 inputTsvManual = "../data/input/cercauniversita/" + "_".join(mylib.sectors).replace("/","") + "_" + anno + "_id_MANUALCHECKED.tsv"
+inputTsvCercauniversita = "../data/input/cercauniversita/" + "_".join(mylib.sectors).replace("/","") + "_" + anno + "_id_CERCAUNIVERSITA.tsv"
 inputPathAbstracts = "../data/output/abstracts/" + "_".join(mylib.sectors).replace("/","") + "/"
 
 publicationListPath = "../data/output/publicationsList/" + "_".join(mylib.sectors).replace("/","") + "/"
@@ -26,7 +27,7 @@ abstractsPath = "../data/output/abstracts/" + "_".join(mylib.sectors).replace("/
 
 # UNUSED
 def doChecks():
-	for tsvFilename in [inputTsvAuto,inputTsvManual]:
+	for tsvFilename in [inputTsvAuto,inputTsvManual,inputTsvCercauniversita]:
 		with open(tsvFilename, newline='') as tsvFile:
 			spamreader = csv.DictReader(tsvFile, delimiter='\t')
 			table = list(spamreader)
@@ -101,7 +102,7 @@ def getEidsToDownload(arrayFiles, pathAbstracts):
 	
 	return pubsToDownload
 	
-eidSet = getEidsToDownload([inputTsvAuto,inputTsvManual], abstractsPath)
+eidSet = getEidsToDownload([inputTsvAuto,inputTsvManual,inputTsvCercauniversita], abstractsPath)
 for eid in eidSet:
 	print ('Processing ' + eid)
 	jsonAbs = mylib.getAbstract(doi, 'EID')
