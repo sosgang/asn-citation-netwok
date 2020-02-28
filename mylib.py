@@ -1,3 +1,6 @@
+# -*- coding: UTF-8 -*-
+import datetime
+import requests
 import csv
 import ast
 from glob import glob
@@ -20,7 +23,7 @@ apiURL_Abstract = {
 }
 
 #'https://api.elsevier.com/content/abstract/scopus_id/0032717048?apikey=5953888c807d52ee017df48501d3e598&httpAccept=application/json&view=FULL'
-def getAbstract(doi, doiOrEid, max_retry=2, retry_delay=1):
+def getAbstract(doi, doiOrEid, apikeys, max_retry=2, retry_delay=1):
 	
 	retry = 0
 	cont = True
@@ -29,7 +32,7 @@ def getAbstract(doi, doiOrEid, max_retry=2, retry_delay=1):
 		if doiOrEid.lower() not in ['doi','eid']:
 			print ("ERROR in mylib.getAbstract(): allowed type of search are 'DOI' and 'EID'.")
 
-		params = {'apikey':apikeys.keys[0], 'httpAccept':'application/json'} #, 'view':'FULL'}
+		params = {'apikey':apikeys[0], 'httpAccept':'application/json'} #, 'view':'FULL'}
 		doiEncoded = urllib.parse.quote(doi)
 		#print(apiURL_AbstractDoi + urllib.parse.quote(doi))
 		r = requests.get(apiURL_Abstract[doiOrEid.lower()] + doiEncoded, params=params)

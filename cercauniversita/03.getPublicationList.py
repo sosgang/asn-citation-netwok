@@ -141,7 +141,7 @@ for tsvFilename in [inputTsvAuto,inputTsvManual,inputTsvCercauniversita]:
 			#print (authorId)
 			
 			# skip authors for whom no scopus authorId has been found
-			if authorId == "":
+			if authorId == "" or "MISSING" in authorId:
 				continue
 			
 			j = getPublicationList(authorId)

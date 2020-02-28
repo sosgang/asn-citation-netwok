@@ -69,11 +69,11 @@ def getEidsToDownload(arrayFiles, pathAbstracts):
 			spamreader = csv.DictReader(tsvFile, delimiter='\t')
 			table = list(spamreader)
 			for row in table:
-				idCercauni = row["cercauniId"]
+				#idCercauni = row["cercauniId"]
 				authorId = row["AuthorId"]
 				
 				# skip authors for whom no scopus authorId has been found
-				if authorId == "":
+				if authorId == "" or "MISSING" in authorId:
 					continue
 				
 				pubsFile = publicationListPath + authorId + ".json"
